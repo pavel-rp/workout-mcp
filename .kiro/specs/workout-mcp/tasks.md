@@ -18,7 +18,7 @@
   - Write unit tests for database initialization and schema creation
   - _Requirements: 9.1, 9.2, 9.4, 10.4_
 
-- [ ] 3. Create validation layer with Zod schemas
+- [x] 3. Create validation layer with Zod schemas
 
   - Implement input validation schemas for all MCP tool parameters using numeric IDs; enforce camelCase in API, snake_case in DB
   - Add ISO 8601 datetime validation with timezone support for date fields
