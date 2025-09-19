@@ -9,6 +9,16 @@ import path from 'path';
 const DB_PATH = process.env.DB_PATH || path.resolve('./workout.db');
 
 /**
+ * Configure SQLite runtime PRAGMAs for optimal performance and safety
+ */
+function configurePragmas(sqlite: Database.Database): void {
+  sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('synchronous = NORMAL');
+  sqlite.pragma('busy_timeout = 5000');
+  sqlite.pragma('foreign_keys = ON');
+}
+
+/**
  * Initialize SQLite database with WAL mode configuration and schema setup
  * Configures runtime PRAGMAs and ensures schema exists
  */
@@ -16,10 +26,7 @@ export function initializeDatabase(): { db: BetterSQLite3Database; sqlite: Datab
   const sqlite = new Database(DB_PATH);
   
   // Configure runtime PRAGMAs as specified in requirements
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('synchronous = NORMAL');
-  sqlite.pragma('busy_timeout = 5000');
-  sqlite.pragma('foreign_keys = ON');
+  configurePragmas(sqlite);
   
   // Initialize Drizzle ORM
   const db = drizzle(sqlite);
@@ -43,10 +50,7 @@ export function getDatabaseConnection(): { db: BetterSQLite3Database; sqlite: Da
   const sqlite = new Database(DB_PATH);
   
   // Configure runtime PRAGMAs
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('synchronous = NORMAL');
-  sqlite.pragma('busy_timeout = 5000');
-  sqlite.pragma('foreign_keys = ON');
+  configurePragmas(sqlite);
   
   const db = drizzle(sqlite);
   
