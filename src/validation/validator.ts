@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, type ZodIssue } from 'zod';
 
 // Validation result types
 export interface ValidationSuccess<T> {
@@ -39,8 +39,8 @@ export function validateInput<T>(
         details: {
           field: firstError.path.join('.'),
           code: firstError.code,
-          received: (firstError as any).received,
-          expected: (firstError as any).expected,
+          received: 'received' in firstError ? firstError.received : undefined,
+          expected: 'expected' in firstError ? firstError.expected : undefined,
           allErrors: result.error.issues
         }
       }
@@ -64,7 +64,7 @@ export function safeParseWithDetails<T>(
   if (!result.success) {
     return {
       ...result,
-      errorDetails: result.error.issues.map((err: any) => ({
+      errorDetails: result.error.issues.map((err: ZodIssue) => ({
         field: err.path.join('.'),
         message: err.message,
         code: err.code
