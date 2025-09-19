@@ -1,10 +1,11 @@
 import Database from 'better-sqlite3';
 import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import path from 'path';
 import { initializeSchema, validateSchema } from './init.js';
 
-// Database file path - store in project root, allow override for testing
-const DB_PATH = process.env.DB_PATH || './workout.db';
+import path from 'path';
+
+// Database file path - use absolute path to avoid issues with different working directories
+const DB_PATH = process.env.DB_PATH || path.resolve(process.cwd(), 'workout.db');
 
 /**
  * Initialize SQLite database with WAL mode configuration and schema setup

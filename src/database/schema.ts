@@ -13,7 +13,7 @@ export const exercises = sqliteTable('exercises', {
 export const workouts = sqliteTable('workouts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
-  date: text('date').notNull(), // ISO 8601 datetime with timezone, normalized to UTC at boundary
+  date: text('date').notNull(), // ISO 8601 datetime string (application layer ensures UTC normalization)
   durationMinutes: integer('duration_minutes'),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`)

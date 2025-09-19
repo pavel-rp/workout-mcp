@@ -10,9 +10,8 @@ export function initializeSchema(db: BetterSQLite3Database<any>, sqlite: Databas
   // Enable foreign key constraints
   sqlite.pragma('foreign_keys = ON');
   
-  // Create tables using Drizzle's schema
-  // Note: Drizzle doesn't have built-in migration runner for better-sqlite3
-  // So we'll create tables manually with proper SQL
+  // Create tables manually for initial setup
+  // TODO: Consider migrating to Drizzle Kit migrations for production use
   
   // Create exercises table
   sqlite.exec(`
