@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { ZodIssueCode, z } from 'zod';
 
 // Base validation schemas for common types
 export const PositiveNumberSchema = z.number().positive('Must be a positive number');
@@ -30,22 +30,33 @@ export const AddExerciseSetSchema = z.object({
   notes: z.string().optional()
 });
 
-// Query validation schemas
-export const DateRangeSchema = z.object({
+type DateRangeLike = {
+  startDate?: string;
+  endDate?: string;
+};
+
+const BaseDateRangeObject = z.object({
   startDate: ISO8601DateTimeSchema.optional(),
   endDate: ISO8601DateTimeSchema.optional()
-}).refine(
-  (data) => {
-    if (data.startDate && data.endDate) {
-      return new Date(data.startDate) <= new Date(data.endDate);
+});
+
+const withDateRangeOrderingCheck = <Output extends DateRangeLike, Def extends z.ZodTypeDef = z.ZodTypeDef, Input = Output>(
+  schema: z.ZodType<Output, Def, Input>
+) =>
+  schema.superRefine((data, ctx) => {
+    const { startDate, endDate } = data;
+
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        message: 'Start date must be before or equal to end date',
+        path: ['endDate']
+      });
     }
-    return true;
-  },
-  {
-    message: 'Start date must be before or equal to end date',
-    path: ['endDate']
-  }
-);
+  });
+
+// Query validation schemas
+export const DateRangeSchema = withDateRangeOrderingCheck(BaseDateRangeObject);
 
 export const ExerciseHistorySchema = z.object({
   exerciseName: NonEmptyStringSchema,
@@ -58,38 +69,27 @@ export const WorkoutQuerySchema = z.object({
 
 export const GetWorkoutsSchema = DateRangeSchema;
 
-// Base schema for date range filtering
-const BaseDateRangeSchema = z.object({
-  startDate: ISO8601DateTimeSchema.optional(),
-  endDate: ISO8601DateTimeSchema.optional()
-}).refine(
-  (data) => {
-    if (data.startDate && data.endDate) {
-      return new Date(data.startDate) <= new Date(data.endDate);
-    }
-    return true;
-  },
-  {
-    message: 'Start date must be before or equal to end date',
-    path: ['endDate']
-  }
+// Calculation filter schemas
+export const VolumeCalculationSchema = withDateRangeOrderingCheck(
+  z.object({
+    exerciseName: z.string().optional(),
+    workoutId: PositiveIntegerSchema.optional()
+  }).merge(BaseDateRangeObject)
 );
 
-// Calculation filter schemas
-export const VolumeCalculationSchema = z.object({
-  exerciseName: z.string().optional(),
-  workoutId: PositiveIntegerSchema.optional()
-}).merge(BaseDateRangeSchema);
+export const AverageWeightSchema = withDateRangeOrderingCheck(
+  z.object({
+    exerciseName: NonEmptyStringSchema
+  }).merge(BaseDateRangeObject)
+);
 
-export const AverageWeightSchema = z.object({
-  exerciseName: NonEmptyStringSchema
-}).merge(BaseDateRangeSchema);
-
-export const CountSetsSchema = z.object({
-  exerciseName: z.string().optional(),
-  workoutId: PositiveIntegerSchema.optional(),
-  completed: z.boolean().optional()
-}).merge(BaseDateRangeSchema);
+export const CountSetsSchema = withDateRangeOrderingCheck(
+  z.object({
+    exerciseName: z.string().optional(),
+    workoutId: PositiveIntegerSchema.optional(),
+    completed: z.boolean().optional()
+  }).merge(BaseDateRangeObject)
+);
 
 // Export type definitions for TypeScript
 export type StartWorkoutInput = z.infer<typeof StartWorkoutSchema>;
