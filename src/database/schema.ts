@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 export const exercises = sqliteTable('exercises', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
-  muscleGroups: text('muscle_groups', { mode: 'json' }).$type<string[]>(),
+  muscleGroups: text('muscle_groups', { mode: 'json' }).$type<string[] | null>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 

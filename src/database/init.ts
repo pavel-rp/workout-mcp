@@ -1,6 +1,5 @@
 import Database from 'better-sqlite3';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { exercises, workouts, sets } from './schema.js';
 
 /**
  * Initialize database schema and indexes

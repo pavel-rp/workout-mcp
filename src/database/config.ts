@@ -4,8 +4,9 @@ import { initializeSchema, validateSchema } from './init.js';
 
 import path from 'path';
 
-// Database file path - use absolute path to avoid issues with different working directories
-const DB_PATH = process.env.DB_PATH || path.resolve(process.cwd(), 'workout.db');
+// Database file path - use path relative to project root for consistency
+// In production, consider setting DB_PATH environment variable explicitly
+const DB_PATH = process.env.DB_PATH || path.resolve('./workout.db');
 
 /**
  * Initialize SQLite database with WAL mode configuration and schema setup
