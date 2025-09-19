@@ -209,7 +209,7 @@ export async function handleWorkflowTool(name: string, args: any): Promise<any> 
         ok: true,
         data: {
           exercise_name: args.exercise_name || 'general',
-          guidance: getProgressionGuidance(args.exercise_name)
+          guidance: getProgressionGuidance()
         }
       };
 

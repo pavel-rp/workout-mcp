@@ -165,8 +165,8 @@ describe('Progression Guidance', () => {
     expect(guidance.weight_progression.length).toBeGreaterThan(0);
   });
 
-  test('getProgressionGuidance accepts exercise name parameter', () => {
-    const guidance = getProgressionGuidance('bench press');
+  test('getProgressionGuidance returns general guidance', () => {
+    const guidance = getProgressionGuidance();
     
     expect(guidance).toHaveProperty('weight_progression');
     expect(guidance).toHaveProperty('rep_progression');

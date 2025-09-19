@@ -11,13 +11,21 @@ import {
   normalizeExerciseName
 } from './data.js';
 
+/**
+ * Helper function for fuzzy matching exercise names
+ */
+function fuzzyFindKey(normalizedName: string, keys: string[]): string | undefined {
+  return keys.find(key => 
+    normalizedName.includes(key) || key.includes(normalizedName)
+  );
+}
+
 import {
   WorkoutInstructions,
   ExerciseInstructions,
   SessionFlow,
   RestPeriodGuidance,
   ProgressionGuidance,
-  ExerciseType,
   WorkoutContext
 } from './types.js';
 
@@ -31,7 +39,7 @@ export function getWorkoutInstructions(): WorkoutInstructions {
 /**
  * Get exercise-specific instructions with form cues and safety notes
  */
-export function getExerciseInstructions(exerciseName: string): ExerciseInstructions | null {
+export function getExerciseInstructions(exerciseName: string): ExerciseInstructions {
   const normalizedName = normalizeExerciseName(exerciseName);
   
   // Direct lookup first
@@ -41,9 +49,7 @@ export function getExerciseInstructions(exerciseName: string): ExerciseInstructi
   
   // Fuzzy matching for common variations
   const exerciseKeys = Object.keys(EXERCISE_INSTRUCTIONS);
-  const matchedKey = exerciseKeys.find(key => 
-    normalizedName.includes(key) || key.includes(normalizedName)
-  );
+  const matchedKey = fuzzyFindKey(normalizedName, exerciseKeys);
   
   if (matchedKey) {
     return EXERCISE_INSTRUCTIONS[matchedKey];
@@ -113,6 +119,9 @@ export function getRestPeriodGuidance(exerciseName?: string, context: WorkoutCon
     case 'endurance':
       specificGuidance = guidance.endurance;
       break;
+    case 'general':
+      specificGuidance = REST_PERIOD_GUIDANCE.general.join('\n\n');
+      break;
     default:
       specificGuidance = guidance.hypertrophy; // Default to hypertrophy
   }
@@ -124,7 +133,7 @@ export function getRestPeriodGuidance(exerciseName?: string, context: WorkoutCon
 /**
  * Get progression guidance for an exercise
  */
-export function getProgressionGuidance(exerciseName?: string): ProgressionGuidance {
+export function getProgressionGuidance(): ProgressionGuidance {
   // For now, return general progression guidance
   // In the future, this could be customized per exercise
   return PROGRESSION_GUIDANCE;
@@ -149,10 +158,8 @@ export function getDuringSetPrompt(exerciseName: string): string {
   }
   
   // Check for partial matches
-  const promptKeys = Object.keys(PROMPT_TEMPLATES.during_set);
-  const matchedKey = promptKeys.find(key => 
-    key !== 'default' && (normalizedName.includes(key) || key.includes(normalizedName))
-  );
+  const promptKeys = Object.keys(PROMPT_TEMPLATES.during_set).filter(key => key !== 'default');
+  const matchedKey = fuzzyFindKey(normalizedName, promptKeys);
   
   if (matchedKey) {
     return PROMPT_TEMPLATES.during_set[matchedKey];
@@ -197,8 +204,8 @@ export function searchExercises(query: string): string[] {
   const normalizedQuery = normalizeExerciseName(query);
   const exercises = getAvailableExercises();
   
-  return exercises.filter(exercise => 
-    normalizeExerciseName(exercise).includes(normalizedQuery) ||
-    normalizedQuery.includes(normalizeExerciseName(exercise))
-  );
+  return exercises.filter(exercise => {
+    const normalizedExercise = normalizeExerciseName(exercise);
+    return normalizedExercise.includes(normalizedQuery) || normalizedQuery.includes(normalizedExercise);
+  });
 }

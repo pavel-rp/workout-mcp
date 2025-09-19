@@ -67,7 +67,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   
   // Check if it's a workflow tool
   if (WORKFLOW_TOOLS.some(tool => tool.name === name)) {
-    return await handleWorkflowTool(name, args || {});
+    const result = await handleWorkflowTool(name, args || {});
+    
+    // Convert custom envelope to MCP spec format
+    if (result.ok) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result.data) }]
+      };
+    } else {
+      throw new Error(result.error.message);
+    }
   }
   
   switch (name) {
