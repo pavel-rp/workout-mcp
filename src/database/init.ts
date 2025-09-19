@@ -120,8 +120,8 @@ export function validateSchema(sqlite: Database.Database): boolean {
     }
     
     // Verify foreign key constraints are enabled
-    const fkEnabled = sqlite.pragma('foreign_keys');
-    if (!fkEnabled) {
+    const fkEnabled = sqlite.pragma('foreign_keys', { simple: true });
+    if (fkEnabled !== 1) {
       return false;
     }
     

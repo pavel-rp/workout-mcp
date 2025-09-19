@@ -170,6 +170,20 @@ describe('Database Schema and Initialization', () => {
       const isValid = validateSchema(testDb);
       expect(isValid).toBe(false);
     });
+
+    it('should fail validation when foreign keys are disabled', () => {
+      // Initialize schema to ensure tables and indexes exist
+      initializeSchema(db, testDb);
+
+      // Temporarily disable foreign keys for validation
+      testDb.pragma('foreign_keys = OFF');
+
+      const isValid = validateSchema(testDb);
+      expect(isValid).toBe(false);
+
+      // Re-enable foreign keys to avoid affecting other tests
+      testDb.pragma('foreign_keys = ON');
+    });
   });
 
   describe('Table Structure', () => {
