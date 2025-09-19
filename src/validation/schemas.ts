@@ -1,4 +1,4 @@
-import { ZodIssueCode, ZodTypeAny, z } from 'zod';
+import { ZodIssueCode, z } from 'zod';
 
 // Base validation schemas for common types
 export const PositiveNumberSchema = z.number().positive('Must be a positive number');
@@ -30,14 +30,21 @@ export const AddExerciseSetSchema = z.object({
   notes: z.string().optional()
 });
 
+type DateRangeLike = {
+  startDate?: string;
+  endDate?: string;
+};
+
 const BaseDateRangeObject = z.object({
   startDate: ISO8601DateTimeSchema.optional(),
   endDate: ISO8601DateTimeSchema.optional()
 });
 
-const withDateRangeOrderingCheck = <T extends ZodTypeAny>(schema: T) =>
+const withDateRangeOrderingCheck = <Output extends DateRangeLike, Def extends z.ZodTypeDef = z.ZodTypeDef, Input = Output>(
+  schema: z.ZodType<Output, Def, Input>
+) =>
   schema.superRefine((data, ctx) => {
-    const { startDate, endDate } = data as { startDate?: string; endDate?: string };
+    const { startDate, endDate } = data;
 
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       ctx.addIssue({
