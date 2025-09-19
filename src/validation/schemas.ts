@@ -40,11 +40,9 @@ const BaseDateRangeObject = z.object({
   endDate: ISO8601DateTimeSchema.optional()
 });
 
-const withDateRangeOrderingCheck = <Output extends DateRangeLike, Def extends z.ZodTypeDef = z.ZodTypeDef, Input = Output>(
-  schema: z.ZodType<Output, Def, Input>
-) =>
+const withDateRangeOrderingCheck = <T extends z.ZodTypeAny>(schema: T) =>
   schema.superRefine((data, ctx) => {
-    const { startDate, endDate } = data;
+    const { startDate, endDate } = data as DateRangeLike;
 
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       ctx.addIssue({
