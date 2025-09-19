@@ -2,8 +2,14 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { 
+  CallToolRequestSchema, 
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema
+} from '@modelcontextprotocol/sdk/types.js';
 import { initializeDatabase } from './database/config.js';
+import { WORKFLOW_TOOLS, handleWorkflowTool, WORKFLOW_RESOURCES, handleWorkflowResource } from './workflow/index.js';
 
 type DatabaseHandles = ReturnType<typeof initializeDatabase>;
 
@@ -36,14 +42,42 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
-      // Tools will be added in subsequent tasks
+      ...WORKFLOW_TOOLS,
+      // Additional tools will be added in subsequent tasks
     ],
   };
+});
+
+// List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: WORKFLOW_RESOURCES
+  };
+});
+
+// Handle resource reads
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+  return await handleWorkflowResource(uri);
 });
 
 // Handle tool calls
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+  
+  // Check if it's a workflow tool
+  if (WORKFLOW_TOOLS.some(tool => tool.name === name)) {
+    const result = await handleWorkflowTool(name, args || {});
+    
+    // Convert custom envelope to MCP spec format
+    if (result.ok) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result.data) }]
+      };
+    } else {
+      throw new Error(result.error.message);
+    }
+  }
   
   switch (name) {
     default:
